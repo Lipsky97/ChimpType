@@ -1,0 +1,115 @@
+﻿@page "/personalstats"
+@inject AuthenticationStateProvider AuthState
+@inject TestsDataService TestsDataService
+<PageTitle>Personal Stats</PageTitle>
+
+<div class="personal-stats">
+    <AuthorizeView>
+        <Authorized>
+            <h3>Personal Stats</h3>
+            <div class="stat-box" data-title="Best">
+                <span class="top-score-title">
+                    Favourite type of test
+                    <span class="top-score-value">@Stats.FavouriteTest</span>
+                </span>
+                <span class="top-score-title">
+                    Best WPM score
+                    <span class="top-score-value">@Stats.BestWPM</span>
+                </span>
+                <span class="top-score-title">
+                    Best accuracy
+                    <span class="top-score-value">@Stats.BestAccuracy%</span>
+                </span>
+            </div>
+            <div class="stat-box" data-title="Total">
+                <span class="top-score-title">Total characters typed: <span class="top-score-value">@Stats.TotalCharacters</span></span>
+                <span class="top-score-title">
+                    Total correct characters typed: <span class="top-score-value">@Stats.TotalCorrect</span>
+                </span>
+                <span class="top-score-title">
+                    Total number of mistakes: <span class="top-score-value">@Stats.TotalMistakes</span>
+                </span>
+                <span class="top-score-title">
+                    Total number of typos: <span class="top-score-value">@Stats.TotalTypos</span>
+                </span>
+                <span class="top-score-title">
+                    Total number of extra characters: <span class="top-score-value">@Stats.TotalExtras</span>
+                </span>
+                <span class="top-score-title">Total time spent typing: <span class="top-score-value">@Stats.TotalTimeSpent</span></span>
+            </div>
+            <div class="all-tests">
+                <div class="top-chart-table-container">
+                    <MudDataGrid Items="@Stats.AllTests">
+                        <Columns>
+                            <PropertyColumn Property='x => x.TakenOn.Value.ToString("yyyy/MM/dd HH:mm")' Title="Date taken" />
+                            <PropertyColumn Property="x => x.Wpm" Title="WPM" />
+                            <PropertyColumn Property="x => x.Accuracy" />
+                            <PropertyColumn Property='x => $"{x.CorrectCharacters}/{x.WrongCharacters}/{x.ExtraCharacters}/{x.MissedCharacters}"' Title="C/I/E/M" />
+                            <PropertyColumn Property="x => x.MistakesNumber" Title="Mistakes" />
+                            <PropertyColumn Property="x => TimeSpan.FromSeconds(x.TotalTime.Value)" Title="Test time" />
+                        </Columns>
+                        <PagerContent>
+                            <MudDataGridPager PageSizeOptions="@(new int[] { 5, 10, 20 })" />
+                        </PagerContent>
+                    </MudDataGrid>
+                </div>
+            </div>
+        </Authorized>
+        <NotAuthorized>
+            <MudAlert Severity="Severity.Warning" Style="background: white;">
+                Please <MudLink Href="/login">log in</MudLink> to view this page.
+            </MudAlert>
+        </NotAuthorized>
+    </AuthorizeView>
+</div>
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public Guid? Uid { get; set; }
+
+    private PersonalStatsModel Stats { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrEmpty(Uid.ToString()))
+        {
+            _ = Task.Run(async () =>
+            {
+                await LoadDataAsync();
+            });
+        }
+    }
+
+    private async Task LoadDataAsync()
+    {
+        Stats.AllTests = await TestsDataService.GetTestByUserId(Uid.ToString());
+
+        Stats.TotalCorrect = Stats.AllTests.Sum(x => x.CorrectCharacters.Value);
+        Stats.TotalExtras = Stats.AllTests.Sum(x => x.ExtraCharacters.Value);
+        Stats.TotalMistakes = Stats.AllTests.Sum(x => x.MistakesNumber.Value);
+        Stats.TotalTimeSpent = TimeSpan.FromSeconds(Stats.AllTests.Sum(x => x.TotalTime.Value));
+        Stats.TotalTypos = Stats.AllTests.Sum(x => x.WrongCharacters.Value);
+        Stats.TotalCharacters = Stats.TotalCorrect + Stats.TotalExtras + Stats.TotalTypos;
+
+        Stats.FavouriteTest = Stats.AllTests.Select(x => x.TestType.Split(":")[0].Trim()).GroupBy(x => x).OrderByDescending(x => x.Count()).Select(x => new { Word = x.Key, CountdownEvent = x.Count() }).FirstOrDefault().Word;
+
+        Stats.BestWPM = Stats.AllTests.Select(x => x.Wpm).OrderByDescending(x => x.Value).FirstOrDefault().Value;
+        Stats.BestAccuracy = Convert.ToDouble(Stats.AllTests.OrderByDescending(x => x.Accuracy).Select(x => x.Accuracy).FirstOrDefault().Value);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public class PersonalStatsModel
+    {
+        public string FavouriteTest { get; set; }
+        public int BestWPM { get; set; }
+        public double BestAccuracy { get; set; }
+        public int TotalCharacters { get; set; }
+        public int TotalCorrect { get; set; }
+        public int TotalMistakes { get; set; }
+        public int TotalTypos { get; set; }
+        public int TotalExtras { get; set; }
+        public TimeSpan TotalTimeSpent { get; set; }
+        public List<TestsTaken> AllTests { get; set; }
+    }
+}

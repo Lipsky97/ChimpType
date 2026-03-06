@@ -1,0 +1,70 @@
+﻿@page "/register"
+
+@inject AuthService Auth
+@inject CustomAuthStateProvider AuthState
+@inject NavigationManager Navigation
+
+<div class="register-container">
+    <h1>Register</h1>
+    <div class="register-fields">
+        <MudTextField T="string" Label="Username" ValueChanged="UserNameChanged" Required="true" RequiredError="You need to enter Username" />
+        <MudTextField T="string" Label="Email" @bind-Value="_email" Required="true" RequiredError="You need to enter E-mail" Immediate="true"/>
+        <MudTextField T="string" Label="Name" @bind-Value="_name" Required="true" RequiredError="You need to enter Name" Immediate="true"/>
+        <MudTextField T="string" Label="Password" InputType="InputType.Password" @bind-Value="_password" Required="true" RequiredError="You need to enter password" Immediate="true"/>
+        <MudTextField T="string" Label="Re-enter password" InputType="InputType.Password" Validation="@(new Func<string, string>(PasswordMatch))" @bind-Value="_confirmPassword" Immediate="true"/>
+    </div>
+    <MudButton Color="Color.Secondary" Style="width: 15em; justify-self: center; margin-top: 1em;" Variant="Variant.Outlined" OnClick="HandleRegister" Disabled="_isLoading">
+        @if (_isLoading)
+        {
+            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+            <MudText Class="ms-2">Please wait...</MudText>
+        }
+        else
+        {
+            <MudText>Register</MudText>
+        }
+    </MudButton>
+</div>
+
+@code {
+    private string _userName { get; set; } = "";
+    private string _email { get; set; } = "";
+    private string _name { get; set; } = "";
+    private string _password { get; set; } = "";
+    private string _confirmPassword { get; set; } = "";
+    private bool _isLoading;
+    private bool _passwordIsNotTheSame;
+
+    private async Task HandleRegister()
+    {
+        if (_password != _confirmPassword || string.IsNullOrEmpty(_userName) || string.IsNullOrEmpty(_email) || string.IsNullOrEmpty(_name)) return;
+
+        _isLoading = true;
+        StateHasChanged();
+        var user = await Auth.Register(_userName, _email, _password, _name);
+        _isLoading = false;
+        StateHasChanged();
+
+        if (user != null)
+        {
+            await AuthState.Login(user);
+            Navigation.NavigateTo("/");
+        }
+        else
+        {
+            Console.WriteLine("");
+        }
+    }
+    private void UserNameChanged(string args)
+    {
+        _userName = args;
+        _name = args;
+        StateHasChanged();
+    }
+
+    private string PasswordMatch(string arg)
+    {
+        var result = _password != arg ? "Passwords don't match" : "";
+        return result;
+    }
+}

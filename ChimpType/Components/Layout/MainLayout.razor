@@ -1,0 +1,41 @@
+﻿@inherits LayoutComponentBase
+
+<div class="page">
+    <main>
+        @* Required *@
+        <MudThemeProvider />
+        <MudPopoverProvider />
+        <MudThemeProvider Theme="ChimpTypeTheme" />
+        @* Needed for dialogs *@
+        <MudDialogProvider />
+
+        @* Needed for snackbars *@
+        <MudSnackbarProvider />
+        <TopBar />
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>
+
+@code {
+    MudTheme ChimpTypeTheme = new()
+        {
+            PaletteLight = new PaletteLight()
+            {
+                Primary = "#fcba03",
+                TextPrimary = "#ffffff",
+                Secondary = "#fcba03",
+                TextSecondary = "#ffffff",
+                Background = "#808080",
+                Error = "#8B0000",
+            Surface = "#454545"
+            },
+        };
+}

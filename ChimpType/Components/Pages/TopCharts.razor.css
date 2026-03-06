@@ -1,0 +1,10 @@
+﻿.top-charts {
+    max-width: 75em;
+    justify-self: center;
+}
+
+.test-types {
+    display: flex;
+    align-items: center;
+    gap: 1em;
+}

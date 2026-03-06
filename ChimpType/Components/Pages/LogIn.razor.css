@@ -1,0 +1,15 @@
+﻿.login-container {
+    display: grid;
+    justify-content: center;
+}
+
+h1 {
+    width: 10em;
+    text-align: center;
+}
+
+.login-button {
+    width: 15em;
+    justify-self: center;
+    margin-top: 1em;
+}

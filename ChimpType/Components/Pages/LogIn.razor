@@ -1,0 +1,55 @@
+﻿@page "/login"
+
+@inject AuthService Auth
+@inject CustomAuthStateProvider AuthState
+@inject NavigationManager Navigation
+
+<div class="login-container">
+    <h1>Log In</h1>
+    <div class="login-fields">
+        <MudTextField T="string" Color="Color.Primary" Label="Username or E-mail" @bind-Value="_userNameOrEmail" Required="true" RequiredError="You need to enter Username or E-mail" Immediate="true" />
+        <MudTextField T="string" Label="Password" InputType="InputType.Password" @bind-Value="_password" Required="true" RequiredError="You need to enter password" Immediate="true"/>
+        @if (_wrongCredentials)
+        {
+            <MudAlert Severity="Severity.Error">Wrong username/password</MudAlert>
+        }
+    </div>
+    <MudButton Color="Color.Secondary" Style="width: 15em; justify-self: center; margin-top: 1em;" Variant="Variant.Outlined" OnClick="HandleLogin" Disabled="_isLoading">
+        @if (_isLoading)
+        {
+            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+            <MudText Class="ms-2">Please wait...</MudText>
+        }
+        else
+        {
+            <MudText>Log In</MudText>
+        }
+    </MudButton>
+</div>
+
+@code {
+    private string _userNameOrEmail { get; set; } = "";
+    private string _password { get; set; } = "";
+    private bool _wrongCredentials;
+    private bool _isLoading;
+
+    private async Task HandleLogin()
+    {
+        if (string.IsNullOrEmpty(_userNameOrEmail) || string.IsNullOrEmpty(_password) || _isLoading) return;
+        _isLoading = true;
+        StateHasChanged();
+        var user = await Auth.Login(_userNameOrEmail, _password);
+        _isLoading = false;
+        StateHasChanged();
+        if (user != null)
+        {
+            await AuthState.Login(user);
+            Navigation.NavigateTo("/");
+        }
+        else
+        {
+            _wrongCredentials = true;
+            StateHasChanged();
+        }
+    }
+}

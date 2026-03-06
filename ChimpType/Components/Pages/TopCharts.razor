@@ -1,0 +1,50 @@
+﻿@page "/topcharts"
+@inject TestsDataService TestDataService
+
+<div class="top-charts">
+    <h1>Best scores</h1>
+    <div class="top-chart-table-container">
+        <MudDataGrid Items="@_testsTaken">
+            <Columns>
+                <PropertyColumn Property="x => x.User.Username" Title="User name"/>
+                <PropertyColumn Property="x => x.Wpm" Title="WPM" />
+                <PropertyColumn Property="x => x.Accuracy" />
+                <PropertyColumn Property='x => x.TakenOn.Value.ToString("yyyy/MM/dd HH:mm")' Title="Date taken" />
+            </Columns>
+            <PagerContent>
+                <MudDataGridPager PageSizeOptions="@(new int[] {5, 10, 20})"/>
+            </PagerContent>
+        </MudDataGrid>
+    </div>
+</div>
+@code {
+    private TopCategory _topCategory = TopCategory.Wpm;
+    private List<TestsTaken> _testsTaken = new();
+    private int _numberOfRows = 10;
+
+    protected override async Task OnInitializedAsync()
+    {
+        UpdateTableData();
+    }
+
+    private Variant GetTopCategory(TopCategory category)
+    {
+        if (category == _topCategory)
+        {
+            return Variant.Filled;
+        }
+        return Variant.Outlined;
+    }
+
+    private void OnChartCategoryChosen(TopCategory category)
+    {
+        _topCategory = category;
+        UpdateTableData();
+    }
+
+    private async Task UpdateTableData()
+    {
+        _testsTaken = await TestDataService.GetTop(_numberOfRows, _topCategory);
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,50 @@
+﻿@using System.Security.Claims
+@inject CustomAuthStateProvider AuthState
+@inject NavigationManager Navigation
+
+<div class="top-bar-container auth-header">
+    <a href="/" class="logo-link">
+        <div class="logo-container">
+            <img class="logo-picture" src="img/chimpTypeLogo.png" />
+        </div>
+    </a>
+    <div class="top-bar-status-container">
+        <AuthorizeView>
+            <Authorized>
+                <span>Hello, @context.User.Identity?.Name! </span>
+                <MudButton Style="margin-left: 1em; color: white;" Variant="Variant.Text" OnClick="Logout">LogOut</MudButton>
+                <MudButton Style="margin-left: 1em; color: white;" Variant="Variant.Text" OnClick="GoToPersonalStats">Personal stats</MudButton>
+            </Authorized>
+            <NotAuthorized>
+                @* <span>Welcome to ChimpType! </span> *@
+                <MudButton Style="margin-left: 1em; color:white;" Variant="Variant.Text" Href="/login">LogIn</MudButton>
+                <MudButton Style="margin-left: 1em; color: white;" Variant="Variant.Text" Href="/register">Register</MudButton>
+            </NotAuthorized>
+        </AuthorizeView>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> authentcationStateTask { get; set; } = default!;
+    private AuthenticationState? context;
+
+    private async Task Logout()
+    {
+        context = await authentcationStateTask;
+        if (context != null)
+        {
+            await AuthState.Logout(context.User.Identity?.Name ?? "");
+            Navigation.NavigateTo("/");
+        }
+    }
+
+    private async Task GoToPersonalStats()
+    {
+        context = await authentcationStateTask;
+        if (context != null)
+        {
+            var id = context.User.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value;
+            Navigation.NavigateTo($"/personalstats?uid={id}");
+        }
+    }
+}
