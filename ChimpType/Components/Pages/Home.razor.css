@@ -3,6 +3,55 @@
     color: white;
     font-size: xx-large;
     padding: 1em 2em 2em 2em;
+    user-select: none; /* ← Prevents text selection highlight */
+    -webkit-user-select: none; /* Safari/Chrome */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none;
+    outline: none !important;
+    outline-offset: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    transition: background 0.3s ease, backdrop-filter 0.3s ease;
+}
+
+.prompt-overlay {
+    position: absolute;
+    top: 58%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.2em;
+    font-weight: 300;
+    pointer-events: none;
+    z-index: 10;
+    text-align: center;
+}
+
+.blur-container {
+    transition: filter 0.3s ease, opacity 0.3s ease; /* Single element */
+}
+
+.type-area:not(:focus) .blur-container {
+    filter: blur(2px);
+    opacity: 0.8;
+}
+
+.type-area:focus .blur-container {
+    filter: blur(0);
+    opacity: 1;
+}
+
+.type-area:focus,
+.type-area:focus-within,
+.type-area:active {
+    outline: none !important;
+    outline-offset: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.type-area:focus:not(:focus-visible) {
+    outline: none; /* Mouse users: no outline */
 }
 
 h1.welcome-text {
@@ -12,7 +61,7 @@ h1.welcome-text {
 .text-container {
     text-align: center;
     display: block;
-    height: 8.5rem;
+    height: 9rem;
     overflow-y: hidden;
     overflow-x: hidden;
     line-height: 3rem;
@@ -23,7 +72,12 @@ h1.welcome-text {
 .letter {
     /*display: inline-block;*/
     /*white-space: nowrap;*/
-    position: relative
+    position: relative; 
+    font-family: "Times New Roman", Times, serif;
+    font-size: 35px;
+    font-weight: 400;
+    line-height: 1.4;
+    letter-spacing: 0.02em;
 }
 
 .correct-letter {

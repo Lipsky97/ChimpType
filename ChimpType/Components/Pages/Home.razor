@@ -43,12 +43,20 @@
                         }
                     }
                 </div>
-                <p class="text-container" @ref="_textContainer">
-                    @for(var i = 0; i < Test.Buffer.Text.Length; i++)
-                    {
-                        <span @key="i" class="@GetLetterStyle(Test.Buffer.Styles[i]) @(_currentIndex == i && _isFocused ? "cursor" : "") letter">@Test.Buffer.Text[i]</span>
-                    }
-                </p>
+                <div class="blur-container">
+                    <p class="text-container" @ref="_textContainer">
+                        @for(var i = 0; i < Test.Buffer.Text.Length; i++)
+                        {
+                            <span @key="i" class="@GetLetterStyle(Test.Buffer.Styles[i]) @(_currentIndex == i && _isFocused ? "cursor" : "") letter">@Test.Buffer.Text[i]</span>
+                        }
+                    </p>
+                </div>
+                @if (!_isFocused)
+                {
+                    <div class="prompt-overlay">
+                        <span>Click here to start typing</span>
+                    </div>
+                }
             </div>
             @if (Test.TestType == TestType.Zen)
             {
@@ -382,7 +390,16 @@
 
     private async Task ResetTyping()
     {
-        for (var i = 0; i < Test.Buffer?.Text?.Length; i++)
+        List<int> lettersToRemove = Test.Buffer.Styles.Select((value, index) => new { value, index }).Where(x => x.value == LetterStyle.Extra).Select(x => x.index).OrderByDescending(x => x).ToList();
+        var typingString = Test.Buffer.Text.ToList();
+        foreach (var letter in lettersToRemove)
+        {
+            typingString.RemoveAt(letter);
+            Test.Buffer.Styles.RemoveAt(letter);
+        }
+        Test.Buffer.Text = string.Join("", typingString);
+
+        for (var i = 0; i < Test.Buffer.Styles.Count; i++)
         {
             Test.Buffer.Styles[i] = LetterStyle.ToType;
         }
@@ -427,7 +444,7 @@
                 typeText = TextService.GetRandomWords(Test.WordCount);
                 break;
             case TestType.Zen:
-                typeText = TextService.GetRandomWords(3000);
+                typeText = TextService.GetRandomWords(1000);
                 break;
         }
         Test.WordsToComplete = typeText.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
