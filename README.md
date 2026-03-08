@@ -23,6 +23,8 @@ Now, with that out of the way, let’s dive into the details…
 ### Potential fixes/improvements
 * Optimise the way the letters are displayed - right now full text is loaded into the website instead of just the visible letters, which is very taxing on the browser
 * Infinite Zen mode instead of loading in fixed number of words (1000 at the moment) - this could be done together with the previous point, dynamically loading/unloading letters unclocks potential for infinite scrolling
+* Auotmatic focus on the typing area after selecting tying options, refreshing text, resetting the test
 * More detailed stats to view
 * Graphs and data grids could be prettier
 * Light mode / Dark mode selection
+* Support for mobile devices
