@@ -4,7 +4,7 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 
-<PageTitle>Home</PageTitle>
+<PageTitle>ChimpType</PageTitle>
 
 <div class="typing-page">
     <h1 class="welcome-text">Welcome to ChimpType! A monkey type clone!</h1>
@@ -137,7 +137,8 @@
 
 <script>
     function scrollToCursorPosition(container, index) {
-
+        console.log(container);
+        if (!container) return;
         const letters = container.querySelectorAll('.letter');
         if (letters[index]) {
             const letterRect = letters[index].getBoundingClientRect();
@@ -179,7 +180,7 @@
     protected override async Task OnInitializedAsync()
     {
         GetNewText();
-        _options.InterpolationOption = InterpolationOption.NaturalSpline;
+        // _options.InterpolationOption = InterpolationOption.NaturalSpline;
         _options.YAxisFormat = "c2";
         _context = await authenticationStateTask;
     }
@@ -282,7 +283,7 @@
                 }
 
                 Test.Buffer.CharacterClicks.Add(DateTime.UtcNow);
-                Test.Mistakes.Add(DateTime.Now);
+                Test.Mistakes.Add(DateTime.UtcNow);
             }
 
             _currentIndex++;
@@ -363,11 +364,30 @@
         _axisLabels = new string[totalSeconds];
         var series = new ChartSeries<double>();
         var wpmOverTime = new double[totalSeconds];
+        var _firstKeystrokeTime = DateTime.Now;
+        var _firstKeystrokeRecorded = false;
         for (var i = 0; i < totalSeconds; i++)
         {
             _axisLabels[i] = (i % tickSpacing == 0) ? $"{i}" : "";
-            var clicksInTimeSpan = Test.Buffer.CharacterClicks.Count(x => x - _startTime < TimeSpan.FromSeconds(i + 1));
-            var wpmInTimeSpan = (int)Math.Round((clicksInTimeSpan / (double)5) / ((i + 1) / (double)60));
+
+            var elapsedSeconds = i + 1;
+
+            if (!_firstKeystrokeRecorded && Test.Buffer.CharacterClicks.Count > 0)
+            {
+                _firstKeystrokeTime = Test.Buffer.CharacterClicks.First();
+                _firstKeystrokeRecorded = true;
+            }
+
+            var clicksInTimeSpan = Test.Buffer.CharacterClicks.Count(x =>
+                x - _firstKeystrokeTime < TimeSpan.FromSeconds(elapsedSeconds));
+
+            if (clicksInTimeSpan < 3 || elapsedSeconds < 2.0)
+            {
+                wpmOverTime[i] = 0;
+                continue;
+            }
+
+            var wpmInTimeSpan = Math.Round((clicksInTimeSpan / 5.0) / (elapsedSeconds / 60.0));
             wpmOverTime[i] = wpmInTimeSpan;
         }
         series.Name = "WPM";
